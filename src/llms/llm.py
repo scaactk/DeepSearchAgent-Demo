@@ -32,7 +32,7 @@ class LLM(BaseLLM):
             api_key=self.api_key,
             base_url=self.base_url
         )
-        if not self.model_name:
+        if self.model_name:
             self.default_model = self.model_name
         else:
             raise ValueError("模型名称未找到！请在config.py或.env文件中设置MODEL_NAME。")

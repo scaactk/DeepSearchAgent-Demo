@@ -9,7 +9,7 @@ import sys
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from src import DeepSearchAgent, Config
+from src import DeepSearchAgent, Config, load_config
 from src.utils.config import print_config
 
 
@@ -22,22 +22,30 @@ def advanced_example():
     try:
         # 自定义配置
         print("正在创建自定义配置...")
-        config = Config(
-            # 使用OpenAI而不是DeepSeek
-            default_llm_provider="openai",
-            openai_model="gpt-4o-mini",
-            # 自定义搜索参数
-            max_search_results=5,  # 更多搜索结果
-            max_reflections=3,     # 更多反思次数
-            max_content_length=15000,
-            # 自定义输出
-            output_dir="custom_reports",
-            save_intermediate_states=True
-        )
-        
+        config = load_config()
+        config.max_search_results = 5
+        config.max_reflections = 3
+        config.max_content_length = 15000
+        config.output_dir = "custom_reports"
+        config.save_intermediate_states = True
+        # config = Config(
+        #     # 填入您使用的模型服务商的 base url, api key和模型名称
+        #     # base_url="...",
+        #     # api_key="",          # 您的API密钥
+        #     # model="...",
+        #     # 自定义搜索参数
+        #     max_search_results=5,  # 更多搜索结果
+        #     max_reflections=3,     # 更多反思次数
+        #     max_content_length=15000,
+        #     # 自定义输出
+        #     output_dir="custom_reports",
+        #     save_intermediate_states=True
+        # )
         # 从环境变量设置API密钥
-        config.openai_api_key = os.getenv("OPENAI_API_KEY")
-        config.tavily_api_key = os.getenv("TAVILY_API_KEY")
+        if not config.api_key:
+            config.api_key = os.getenv("API_KEY")
+        if not config.tavily_api_key:
+            config.tavily_api_key = os.getenv("TAVILY_API_KEY")
         
         if not config.validate():
             print("配置验证失败，请检查API密钥设置")
@@ -51,9 +59,9 @@ def advanced_example():
         
         # 执行多个研究任务
         queries = [
-            "深度学习在医疗领域的应用",
-            "区块链技术的最新发展",
-            "可持续能源技术趋势"
+            "深度学习在三维重建领域的应用",
+            # "中国基座大模型的最新发展",
+            
         ]
         
         for i, query in enumerate(queries, 1):
@@ -96,7 +104,7 @@ def state_management_example():
     
     try:
         # 创建配置
-        config = Config.from_env()
+        config = load_config()
         if not config.validate():
             print("配置验证失败")
             return
@@ -104,14 +112,14 @@ def state_management_example():
         # 创建Agent
         agent = DeepSearchAgent(config)
         
-        query = "量子计算的发展现状"
+        query = "SAM模型的技术细节与应用"
         print(f"开始研究: {query}")
         
         # 执行研究
         final_report = agent.research(query)
         
         # 保存状态
-        state_file = "custom_reports/quantum_computing_state.json"
+        state_file = "custom_reports/sam_model_state.json"
         agent.save_state(state_file)
         print(f"状态已保存到: {state_file}")
         

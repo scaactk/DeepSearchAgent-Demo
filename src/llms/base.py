@@ -37,16 +37,6 @@ class BaseLLM(ABC):
         """
         pass
     
-    @abstractmethod
-    def get_default_model(self) -> str:
-        """
-        获取默认模型名称
-        
-        Returns:
-            默认模型名称
-        """
-        pass
-    
     def validate_response(self, response: str) -> str:
         """
         验证和清理响应内容
