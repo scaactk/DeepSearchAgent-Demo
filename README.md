@@ -16,7 +16,7 @@
 ## 特性
 
 - **无框架设计**: 从零实现，不依赖LangChain等重型框架
-- **多LLM支持**: 支持DeepSeek、OpenAI等主流大语言模型
+- **多LLM支持**: 支持各种模型服务商提供的LLM，如DeepSeek、OpenAI、MiniMax等
 - **智能搜索**: 集成Tavily搜索引擎，提供高质量网络搜索
 - **反思机制**: 多轮反思优化，确保研究深度和完整性
 - **状态管理**: 完整的研究过程状态跟踪和恢复
@@ -66,14 +66,15 @@ python --version
 
 ```bash
 git clone <your-repo-url>
-cd Demo\ DeepSearch\ Agent
+cd DeepSearchAgent-Demo
 ```
 
 ### 3. 安装依赖
 
 ```bash
-# 激活虚拟环境（推荐）
-conda activate pytorch_python11  # 或者使用其他虚拟环境
+# 使用conda创建并激活虚拟环境
+conda create -n deepresearch python=3.11 -y
+conda activate deepresearch
 
 # 安装依赖
 pip install -r requirements.txt
@@ -81,25 +82,19 @@ pip install -r requirements.txt
 
 ### 4. 配置API密钥
 
-项目根目录下已有`config.py`配置文件，请直接编辑此文件设置您的API密钥：
+请复制项目根目录下的`config.py.example`配置文件改名为`config.py`，请直接编辑此文件设置您使用服务商的base url，API Key，模型名称以及Tavily搜索API Key：
 
 ```python
 # Deep Search Agent 配置文件
-# 请在这里填入您的API密钥
 
-# DeepSeek API Key
-DEEPSEEK_API_KEY = "your_deepseek_api_key_here"
+# 请在这里填入服务商的Base URL、API Key和模型名称
+BASE_URL = ""
+API_KEY = ""
+MODEL_NAME = ""
 
-# OpenAI API Key (可选)
-OPENAI_API_KEY = "your_openai_api_key_here"
+# 请在这里填入Tavily搜索API Key，前往https://app.tavily.com/home获取
+TAVILY_API_KEY = ""
 
-# Tavily搜索API Key
-TAVILY_API_KEY = "your_tavily_api_key_here"
-
-# 配置参数
-DEFAULT_LLM_PROVIDER = "deepseek"
-DEEPSEEK_MODEL = "deepseek-chat"
-OPENAI_MODEL = "gpt-4o-mini"
 
 MAX_REFLECTIONS = 2
 SEARCH_RESULTS_PER_QUERY = 3
@@ -167,15 +162,15 @@ from src import DeepSearchAgent, Config
 
 # 自定义配置
 config = Config(
-    default_llm_provider="deepseek",
-    deepseek_model="deepseek-chat",
     max_reflections=3,           # 增加反思次数
     max_search_results=5,        # 增加搜索结果数
     output_dir="my_reports"      # 自定义输出目录
 )
 
 # 设置API密钥
-config.deepseek_api_key = "your_api_key"
+config.base_url = "base_url"
+config.api_key = "your_api_key"
+config.model = "model_name"
 config.tavily_api_key = "your_tavily_key"
 
 agent = DeepSearchAgent(config)
@@ -188,8 +183,7 @@ Demo DeepSearch Agent/
 ├── src/                          # 核心代码
 │   ├── llms/                     # LLM调用模块
 │   │   ├── base.py              # LLM基类
-│   │   ├── deepseek.py          # DeepSeek实现
-│   │   └── openai_llm.py        # OpenAI实现
+│   │   ├── llm.py          # 通用LLM实现
 │   ├── nodes/                    # 处理节点
 │   │   ├── base_node.py         # 节点基类
 │   │   ├── report_structure_node.py  # 结构生成
@@ -341,15 +335,12 @@ class DeepSearchAgent:
 
 ```python
 class Config:
-    # API密钥
-    deepseek_api_key: Optional[str]
-    openai_api_key: Optional[str] 
-    tavily_api_key: Optional[str]
+    """配置类"""
+    base_url: Optional[str] = None
+    api_key: Optional[str] = None
+    tavily_api_key: Optional[str] = None
     
-    # 模型配置
-    default_llm_provider: str = "deepseek"
-    deepseek_model: str = "deepseek-chat"
-    openai_model: str = "gpt-4o-mini"
+    model: str = ""
     
     # 搜索配置
     max_search_results: int = 3
@@ -412,16 +403,6 @@ print(f"研究进度: {progress['progress_percentage']}%")
 
 ## 高级功能
 
-### 多模型支持
-
-```python
-# 使用DeepSeek
-config = Config(default_llm_provider="deepseek")
-
-# 使用OpenAI
-config = Config(default_llm_provider="openai", openai_model="gpt-4o")
-```
-
 ### 自定义输出
 
 ```python
@@ -435,10 +416,7 @@ config = Config(
 
 ### Q: 支持哪些LLM？
 
-A: 目前支持：
-- **DeepSeek**: 推荐使用，性价比高
-- **OpenAI**: GPT-4o、GPT-4o-mini等
-- 可以通过继承`BaseLLM`类轻松添加其他模型
+A: 支持各种模型服务商提供的LLM，如DeepSeek、OpenAI、MiniMax等。只需在配置文件中设置相应的Base URL、API Key和模型名称即可。
 
 ### Q: 如何获取API密钥？
 
@@ -446,6 +424,7 @@ A:
 - **DeepSeek**: 访问 [DeepSeek平台](https://platform.deepseek.com/) 注册获取
 - **Tavily**: 访问 [Tavily](https://tavily.com/) 注册获取（每月1000次免费）
 - **OpenAI**: 访问 [OpenAI平台](https://platform.openai.com/) 获取
+- **MiniMax**: 访问 [MiniMax AI](https://platform.minimaxi.com/user-center/basic-information/interface-key) 获取
 
 获取密钥后，直接编辑项目根目录的`config.py`文件填入即可。
 
@@ -481,9 +460,8 @@ A: 当前主要支持Tavily，但可以通过修改`src/tools/search.py`添加�
 
 ## 致谢
 
-- 感谢 [DeepSeek](https://www.deepseek.com/) 提供优秀的LLM服务
+- 感谢 [DeepSeek](https://www.deepseek.com/) [MiniMax](https://minimaxi.com/) 提供优秀的LLM服务
 - 感谢 [Tavily](https://tavily.com/) 提供高质量的搜索API
-
 ---
 
 如果这个项目对您有帮助，请给个Star！

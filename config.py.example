@@ -1,0 +1,16 @@
+# Deep Search Agent 配置文件
+
+# 请在这里填入服务商的Base URL、API Key和模型名称
+BASE_URL = ""
+API_KEY = ""
+MODEL_NAME = ""
+
+# 请在这里填入Tavily搜索API Key，前往https://app.tavily.com/home获取
+TAVILY_API_KEY = ""
+
+
+MAX_REFLECTIONS = 2
+SEARCH_RESULTS_PER_QUERY = 3
+SEARCH_CONTENT_MAX_LENGTH = 20000
+OUTPUT_DIR = "reports"
+SAVE_INTERMEDIATE_STATES = True
