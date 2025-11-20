@@ -24,6 +24,7 @@ share/python-wheels/
 MANIFEST
 
 # 虚拟环境
+.venv/
 venv/
 env/
 ENV/
@@ -71,3 +72,9 @@ streamlit_reports/
 .coverage
 htmlcov/
 .pytest_cache/
+
+# UV environment files
+.python-version
+pyproject.toml
+uv.lock
+config.py
