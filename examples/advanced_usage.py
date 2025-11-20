@@ -22,7 +22,7 @@ def advanced_example():
     try:
         # 自定义配置
         print("正在创建自定义配置...")
-        config = load_config()
+        config = load_config(method="advanced")
         config.max_search_results = 5
         config.max_reflections = 3
         config.max_content_length = 15000

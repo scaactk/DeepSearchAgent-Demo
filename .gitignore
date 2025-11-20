@@ -77,4 +77,4 @@ htmlcov/
 .python-version
 pyproject.toml
 uv.lock
-config.py
+myconfig.py

@@ -46,7 +46,7 @@ class Config:
         return True
     
     @classmethod
-    def from_file(cls, config_file: str) -> "Config":
+    def from_file(cls, config_file: str, method="basic") -> "Config":
         """从配置文件创建配置"""
         if config_file.endswith('.py'):
             # Python配置文件
@@ -57,11 +57,20 @@ class Config:
             config_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(config_module)
             
+            if method == "basic":
+                base_url = getattr(config_module, "DEEPSEEK_BASE_URL", None)
+                api_key = getattr(config_module, "DEEPSEEK_API_KEY", None)
+                model = getattr(config_module, "DEEPSEEK_MODEL", "deepseek-chat")
+            if method == "advanced":
+                base_url = getattr(config_module, "OPENAI_BASE_URL", None)
+                api_key = getattr(config_module, "OPENAI_API_KEY", None)
+                model = getattr(config_module, "OPENAI_MODEL", "gpt-4o-mini")
+
             return cls(
-                base_url=getattr(config_module, "BASE_URL", None),
-                api_key=getattr(config_module, "API_KEY", None),
-                tavily_api_key=getattr(config_module, "TAVILY_API_KEY", None),
-                model=getattr(config_module, "MODEL_NAME", "deepseek-chat"),
+                base_url=base_url or None, # 短路赋值
+                api_key=api_key,
+                model=model,
+                tavily_api_key = getattr(config_module, "TAVILY_API_KEY", None),
                 max_search_results=getattr(config_module, "SEARCH_RESULTS_PER_QUERY", 3),
                 search_timeout=getattr(config_module, "SEARCH_TIMEOUT", 240),
                 max_content_length=getattr(config_module, "SEARCH_CONTENT_MAX_LENGTH", 20000),
@@ -97,7 +106,7 @@ class Config:
             )
 
 
-def load_config(config_file: Optional[str] = None) -> Config:
+def load_config(config_file: Optional[str] = None, method="basic") -> Config:
     """
     加载配置
     
@@ -114,7 +123,7 @@ def load_config(config_file: Optional[str] = None) -> Config:
         file_to_load = config_file
     else:
         # 尝试加载常见的配置文件
-        for config_path in ["config.py", "config.env", ".env"]:
+        for config_path in ["myconfig.py", "config.env", ".env"]:
             if os.path.exists(config_path):
                 file_to_load = config_path
                 print(f"已找到配置文件: {config_path}")
@@ -123,7 +132,7 @@ def load_config(config_file: Optional[str] = None) -> Config:
             raise FileNotFoundError("未找到配置文件，请创建 config.py 文件")
     
     # 创建配置对象
-    config = Config.from_file(file_to_load)
+    config = Config.from_file(file_to_load, method=method)
     
     # 验证配置
     if not config.validate():
