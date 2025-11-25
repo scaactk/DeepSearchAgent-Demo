@@ -24,7 +24,7 @@ class ReportFormattingNode(BaseNode):
         Args:
             llm_client: LLM客户端
         """
-        super().__init__(llm_client, "ReportFormattingNode")
+        super().__init__(llm_client, node_name="ReportFormattingNode")
     
     def validate_input(self, input_data: Any) -> bool:
         """验证输入数据"""

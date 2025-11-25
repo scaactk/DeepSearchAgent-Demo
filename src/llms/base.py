@@ -7,10 +7,10 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 
 
-class BaseLLM(ABC):
+class BaseLLM(ABC): # Abstract Base Class（抽象基类）
     """LLM基础抽象类"""
     
-    def __init__(self, api_key: str, model_name: Optional[str] = None):
+    def __init__(self, api_key: str, base_url: Optional[str] = None, model_name: Optional[str] = None):
         """
         初始化LLM客户端
         
@@ -19,6 +19,7 @@ class BaseLLM(ABC):
             model_name: 模型名称，如果不指定则使用默认模型
         """
         self.api_key = api_key
+        self.base_url = base_url
         self.model_name = model_name
         
     @abstractmethod
@@ -33,16 +34,6 @@ class BaseLLM(ABC):
             
         Returns:
             LLM生成的回复文本
-        """
-        pass
-    
-    @abstractmethod
-    def get_default_model(self) -> str:
-        """
-        获取默认模型名称
-        
-        Returns:
-            默认模型名称
         """
         pass
     

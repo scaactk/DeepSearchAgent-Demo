@@ -1,6 +1,5 @@
 """
-DeepSeek LLM实现
-使用DeepSeek API进行文本生成
+支持OpenAI接口格式的通用LLM实现
 """
 
 import os
@@ -8,40 +7,40 @@ from typing import Optional, Dict, Any
 from openai import OpenAI
 from .base import BaseLLM
 
-
-class DeepSeekLLM(BaseLLM):
-    """DeepSeek LLM实现类"""
+class LLM(BaseLLM):
+    """通用LLM实现类"""
     
-    def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, model_name: Optional[str] = None):
         """
-        初始化DeepSeek客户端
+        初始化LLM客户端
         
         Args:
-            api_key: DeepSeek API密钥，如果不提供则从环境变量读取
+            api_key: API密钥，如果不提供则从环境变量读取API_KEY
+            base_url: API基础URL，默认使用DeepSeek的URL
             model_name: 模型名称，默认使用deepseek-chat
         """
         if api_key is None:
-            api_key = os.getenv("DEEPSEEK_API_KEY")
-            if not api_key:
-                raise ValueError("DeepSeek API Key未找到！请设置DEEPSEEK_API_KEY环境变量或在初始化时提供")
+            raise ValueError("API Key未找到！请在config.py或.env文件中设置API_KEY。")
         
-        super().__init__(api_key, model_name)
+        if base_url is None:
+            raise ValueError("Base URL未找到！请在config.py或.env文件中设置BASE_URL。")
+            
+        super().__init__(api_key, base_url, model_name)
         
-        # 初始化OpenAI客户端，使用DeepSeek的endpoint
+        # 初始化OpenAI客户端，使用支持openai格式的endpoint url
         self.client = OpenAI(
             api_key=self.api_key,
-            base_url="https://api.deepseek.com"
+            base_url=self.base_url
         )
-        
-        self.default_model = model_name or self.get_default_model()
+        if self.model_name:
+            self.default_model = self.model_name
+        else:
+            raise ValueError("模型名称未找到！请在config.py或.env文件中设置MODEL_NAME。")
     
-    def get_default_model(self) -> str:
-        """获取默认模型名称"""
-        return "deepseek-chat"
     
     def invoke(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
         """
-        调用DeepSeek API生成回复
+        调用LLM API生成回复
         
         Args:
             system_prompt: 系统提示词
@@ -49,7 +48,7 @@ class DeepSeekLLM(BaseLLM):
             **kwargs: 其他参数，如temperature、max_tokens等
             
         Returns:
-            DeepSeek生成的回复文本
+            LLM 生成的回复文本
         """
         try:
             # 构建消息
@@ -78,7 +77,7 @@ class DeepSeekLLM(BaseLLM):
                 return ""
                 
         except Exception as e:
-            print(f"DeepSeek API调用错误: {str(e)}")
+            print(f"{self.base_url} API调用错误: {str(e)}")
             raise e
     
     def get_model_info(self) -> Dict[str, Any]:
@@ -89,7 +88,6 @@ class DeepSeekLLM(BaseLLM):
             模型信息字典
         """
         return {
-            "provider": "DeepSeek",
             "model": self.default_model,
-            "api_base": "https://api.deepseek.com"
+            "base_url": self.base_url,
         }

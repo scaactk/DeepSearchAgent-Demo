@@ -26,7 +26,7 @@ class FirstSearchNode(BaseNode):
         Args:
             llm_client: LLM客户端
         """
-        super().__init__(llm_client, "FirstSearchNode")
+        super().__init__(llm_client, node_name="FirstSearchNode")
     
     def validate_input(self, input_data: Any) -> bool:
         """验证输入数据"""
@@ -131,7 +131,7 @@ class ReflectionNode(BaseNode):
         Args:
             llm_client: LLM客户端
         """
-        super().__init__(llm_client, "ReflectionNode")
+        super().__init__(llm_client, node_name="ReflectionNode")
     
     def validate_input(self, input_data: Any) -> bool:
         """验证输入数据"""

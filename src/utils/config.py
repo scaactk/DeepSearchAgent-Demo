@@ -7,19 +7,17 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
+from openai import base_url
+
 
 @dataclass
 class Config:
     """配置类"""
-    # API密钥
-    deepseek_api_key: Optional[str] = None
-    openai_api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    api_key: Optional[str] = None
     tavily_api_key: Optional[str] = None
     
-    # 模型配置
-    default_llm_provider: str = "deepseek"  # deepseek 或 openai
-    deepseek_model: str = "deepseek-chat"
-    openai_model: str = "gpt-4o-mini"
+    model: str = ""
     
     # 搜索配置
     max_search_results: int = 3
@@ -37,12 +35,8 @@ class Config:
     def validate(self) -> bool:
         """验证配置"""
         # 检查必需的API密钥
-        if self.default_llm_provider == "deepseek" and not self.deepseek_api_key:
-            print("错误: DeepSeek API Key未设置")
-            return False
-        
-        if self.default_llm_provider == "openai" and not self.openai_api_key:
-            print("错误: OpenAI API Key未设置")
+        if not self.api_key:
+            print("错误: API Key未设置")
             return False
         
         if not self.tavily_api_key:
@@ -52,7 +46,7 @@ class Config:
         return True
     
     @classmethod
-    def from_file(cls, config_file: str) -> "Config":
+    def from_file(cls, config_file: str, method="basic") -> "Config":
         """从配置文件创建配置"""
         if config_file.endswith('.py'):
             # Python配置文件
@@ -63,13 +57,20 @@ class Config:
             config_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(config_module)
             
+            if method == "basic":
+                base_url = getattr(config_module, "DEEPSEEK_BASE_URL", None)
+                api_key = getattr(config_module, "DEEPSEEK_API_KEY", None)
+                model = getattr(config_module, "DEEPSEEK_MODEL", "deepseek-chat")
+            if method == "advanced":
+                base_url = getattr(config_module, "OPENAI_BASE_URL", None)
+                api_key = getattr(config_module, "OPENAI_API_KEY", None)
+                model = getattr(config_module, "OPENAI_MODEL", "gpt-4o-mini")
+
             return cls(
-                deepseek_api_key=getattr(config_module, "DEEPSEEK_API_KEY", None),
-                openai_api_key=getattr(config_module, "OPENAI_API_KEY", None),
-                tavily_api_key=getattr(config_module, "TAVILY_API_KEY", None),
-                default_llm_provider=getattr(config_module, "DEFAULT_LLM_PROVIDER", "deepseek"),
-                deepseek_model=getattr(config_module, "DEEPSEEK_MODEL", "deepseek-chat"),
-                openai_model=getattr(config_module, "OPENAI_MODEL", "gpt-4o-mini"),
+                base_url=base_url or None, # 短路赋值
+                api_key=api_key,
+                model=model,
+                tavily_api_key = getattr(config_module, "TAVILY_API_KEY", None),
                 max_search_results=getattr(config_module, "SEARCH_RESULTS_PER_QUERY", 3),
                 search_timeout=getattr(config_module, "SEARCH_TIMEOUT", 240),
                 max_content_length=getattr(config_module, "SEARCH_CONTENT_MAX_LENGTH", 20000),
@@ -91,12 +92,10 @@ class Config:
                             config_dict[key.strip()] = value.strip()
             
             return cls(
-                deepseek_api_key=config_dict.get("DEEPSEEK_API_KEY"),
-                openai_api_key=config_dict.get("OPENAI_API_KEY"),
+                base_url=config_dict.get("BASE_URL"),
+                api_key=config_dict.get("API_KEY"),
                 tavily_api_key=config_dict.get("TAVILY_API_KEY"),
-                default_llm_provider=config_dict.get("DEFAULT_LLM_PROVIDER", "deepseek"),
-                deepseek_model=config_dict.get("DEEPSEEK_MODEL", "deepseek-chat"),
-                openai_model=config_dict.get("OPENAI_MODEL", "gpt-4o-mini"),
+                model=config_dict.get("MODEL_NAME", "deepseek-chat"),
                 max_search_results=int(config_dict.get("SEARCH_RESULTS_PER_QUERY", "3")),
                 search_timeout=int(config_dict.get("SEARCH_TIMEOUT", "240")),
                 max_content_length=int(config_dict.get("SEARCH_CONTENT_MAX_LENGTH", "20000")),
@@ -107,7 +106,7 @@ class Config:
             )
 
 
-def load_config(config_file: Optional[str] = None) -> Config:
+def load_config(config_file: Optional[str] = None, method="basic") -> Config:
     """
     加载配置
     
@@ -124,7 +123,7 @@ def load_config(config_file: Optional[str] = None) -> Config:
         file_to_load = config_file
     else:
         # 尝试加载常见的配置文件
-        for config_path in ["config.py", "config.env", ".env"]:
+        for config_path in ["myconfig.py", "config.env", ".env"]:
             if os.path.exists(config_path):
                 file_to_load = config_path
                 print(f"已找到配置文件: {config_path}")
@@ -133,7 +132,7 @@ def load_config(config_file: Optional[str] = None) -> Config:
             raise FileNotFoundError("未找到配置文件，请创建 config.py 文件")
     
     # 创建配置对象
-    config = Config.from_file(file_to_load)
+    config = Config.from_file(file_to_load, method=method)
     
     # 验证配置
     if not config.validate():
@@ -145,9 +144,8 @@ def load_config(config_file: Optional[str] = None) -> Config:
 def print_config(config: Config):
     """打印配置信息（隐藏敏感信息）"""
     print("\n=== 当前配置 ===")
-    print(f"LLM提供商: {config.default_llm_provider}")
-    print(f"DeepSeek模型: {config.deepseek_model}")
-    print(f"OpenAI模型: {config.openai_model}")
+    print(f"提供商: {config.base_url}")
+    print(f"模型: {config.model}")
     print(f"最大搜索结果数: {config.max_search_results}")
     print(f"搜索超时: {config.search_timeout}秒")
     print(f"最大内容长度: {config.max_content_length}")
@@ -157,7 +155,6 @@ def print_config(config: Config):
     print(f"保存中间状态: {config.save_intermediate_states}")
     
     # 显示API密钥状态（不显示实际密钥）
-    print(f"DeepSeek API Key: {'已设置' if config.deepseek_api_key else '未设置'}")
-    print(f"OpenAI API Key: {'已设置' if config.openai_api_key else '未设置'}")
+    print(f"API Key: {'已设置' if config.api_key else '未设置'}")
     print(f"Tavily API Key: {'已设置' if config.tavily_api_key else '未设置'}")
     print("==================\n")

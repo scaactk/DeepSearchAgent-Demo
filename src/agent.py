@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
-from .llms import DeepSeekLLM, OpenAILLM, BaseLLM
+from .llms import LLM, BaseLLM
 from .nodes import (
     ReportStructureNode,
     FirstSearchNode, 
@@ -52,18 +52,7 @@ class DeepSearchAgent:
     
     def _initialize_llm(self) -> BaseLLM:
         """初始化LLM客户端"""
-        if self.config.default_llm_provider == "deepseek":
-            return DeepSeekLLM(
-                api_key=self.config.deepseek_api_key,
-                model_name=self.config.deepseek_model
-            )
-        elif self.config.default_llm_provider == "openai":
-            return OpenAILLM(
-                api_key=self.config.openai_api_key,
-                model_name=self.config.openai_model
-            )
-        else:
-            raise ValueError(f"不支持的LLM提供商: {self.config.default_llm_provider}")
+        return LLM(self.config.api_key, self.config.base_url, self.config.model)
     
     def _initialize_nodes(self):
         """初始化处理节点"""
