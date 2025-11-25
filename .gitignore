@@ -46,3 +46,4 @@ env/
 
 # 日志文件
 *.log
+myconfig.py
