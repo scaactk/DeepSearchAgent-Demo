@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 
 
-class BaseLLM(ABC):
+class BaseLLM(ABC): # Abstract Base Class（抽象基类）
     """LLM基础抽象类"""
     
     def __init__(self, api_key: str, base_url: Optional[str] = None, model_name: Optional[str] = None):

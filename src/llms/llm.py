@@ -27,7 +27,7 @@ class LLM(BaseLLM):
             
         super().__init__(api_key, base_url, model_name)
         
-        # 初始化OpenAI客户端，使用DeepSeek的endpoint
+        # 初始化OpenAI客户端，使用支持openai格式的endpoint url
         self.client = OpenAI(
             api_key=self.api_key,
             base_url=self.base_url
@@ -40,7 +40,7 @@ class LLM(BaseLLM):
     
     def invoke(self, system_prompt: str, user_prompt: str, **kwargs) -> str:
         """
-        调用DeepSeek API生成回复
+        调用LLM API生成回复
         
         Args:
             system_prompt: 系统提示词
@@ -48,7 +48,7 @@ class LLM(BaseLLM):
             **kwargs: 其他参数，如temperature、max_tokens等
             
         Returns:
-            DeepSeek生成的回复文本
+            LLM 生成的回复文本
         """
         try:
             # 构建消息

@@ -28,7 +28,7 @@ class FirstSummaryNode(StateMutationNode):
         Args:
             llm_client: LLM客户端
         """
-        super().__init__(llm_client, "FirstSummaryNode")
+        super().__init__(llm_client, node_name="FirstSummaryNode")
     
     def validate_input(self, input_data: Any) -> bool:
         """验证输入数据"""
@@ -157,7 +157,7 @@ class ReflectionSummaryNode(StateMutationNode):
         Args:
             llm_client: LLM客户端
         """
-        super().__init__(llm_client, "ReflectionSummaryNode")
+        super().__init__(llm_client, node_name="ReflectionSummaryNode")
     
     def validate_input(self, input_data: Any) -> bool:
         """验证输入数据"""
